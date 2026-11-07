@@ -5,7 +5,7 @@ This file says what a good slide *looks like*. Agents translating a script shoul
 follow both, and check the finished lecture against this list.
 
 Change anything here to suit your course. A course can also keep its own additions
-in its own conventions file (see `templates/course/`).
+in its own conventions file (`lectern init` creates one: `COURSE_CONVENTIONS.md`).
 
 ## Colors mean something
 

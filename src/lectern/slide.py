@@ -20,7 +20,7 @@ markers.py for P (pause), N (speaker note), C (center), and H (place but hide).
 """
 
 import numpy as np
-from manim import (DOWN, LEFT, RIGHT, UP, Arrow, Circle, Code, Dot, FadeIn, FadeOut, Group, Indicate, LaggedStart,
+from manim import (DOWN, LEFT, RIGHT, UP, AnimationGroup, Arrow, Circle, Code, Create, Dot, FadeIn, FadeOut, Group, Indicate, LaggedStart,
                    Line, MarkupText, MathTex, Polygon, Rectangle, ReplacementTransform, Square, Tex, Text, VGroup, config)
 from manim_slides import Slide
 
@@ -30,6 +30,7 @@ from lectern.code import CodeMixin, background_kwargs
 from lectern.markers import C, H, N, P
 from lectern.settings import (BODY_FONT_SIZE, BOTTOM, MARGIN, MIN_RUN_TIME, MIN_SCALE, PANE_FONT_SIZE, STEP,
                               TITLE_FONT_SIZE, TOP_BUFF, WARN_SCALE)
+from lectern.table import grid_table as _grid_table
 from lectern.table import table as _table
 from lectern.theme import T, use_theme
 
@@ -75,9 +76,60 @@ class SlideScene(CodeMixin, Slide):
             # still on that list would survive the fade and come back on the next slide.
             self.foreground_mobjects = []
             self.play(FadeOut(Group(*self.mobjects)))
+        self._line_marks = None
         self.title = self.slide_title(title_text)
         self.play(FadeIn(self.title))
         return self.title
+
+    def continue_slide(self, title_text, keep=()):
+        """Like new_slide, but the mobjects in `keep` stay where they are, and the old
+        title turns into the new one: for a diagram that carries over to the next slide."""
+        self.next_slide()
+        self._line_marks = None
+        others = [m for m in self.mobjects if m not in keep and m is not self.title]
+        new_title = self.slide_title(title_text)
+        anims = [FadeOut(Group(*others))] if others else []
+        # WORKAROUND(manim 0.20): see new_slide; foreground mobjects not kept would come back.
+        self.foreground_mobjects = [m for m in self.foreground_mobjects if m in keep]
+        self.play(*anims, ReplacementTransform(self.title, new_title))
+        self.title = new_title
+        return new_title
+
+    def clear_body(self):
+        """Fade out everything but the title: an untitled continuation (a bare `====`)."""
+        rest = [m for m in self.mobjects if m is not self.title]
+        if rest:
+            self.play(FadeOut(Group(*rest)))
+
+    def add_mobjects_from_animations(self, animations):
+        # WORKAROUND(manim 0.20): before playing, Scene adds each animation's mobject
+        # if it isn't on screen. For an AnimationGroup that mobject is a wrapper Group
+        # of the members; adding a wrapper whose members already belong to something on
+        # screen (a GraphView's vertex circles, say) makes manim pull that parent apart.
+        # So for wrapper Groups, add only the members that are new.
+        on_screen = {id(m) for m in self.get_mobject_family_members()}
+
+        def add(mob):
+            if mob is None or id(mob) in on_screen:
+                return
+            if type(mob) is Group:
+                for sub in mob.submobjects:
+                    add(sub)
+                return
+            self.add(mob)
+            on_screen.update(id(m) for m in mob.get_family())
+
+        for animation in animations:
+            if animation.is_introducer():
+                continue
+            mob = animation.mobject
+            if isinstance(animation, AnimationGroup):
+                add(mob)
+            elif mob is not None and id(mob) not in on_screen:
+                # e.g. FadeOut(Group(*self.mobjects)): the Group itself has to be added,
+                # so the remove at the end takes its members with it.
+                self.add(mob)
+                on_screen.update(id(m) for m in mob.get_family())
 
     def pause(self):
         """`\\pause`: advance without fading anything."""
@@ -190,6 +242,18 @@ class SlideScene(CodeMixin, Slide):
 
     def table(self, rows, font_size=24, header=True, gap_x=0.5, gap_y=0.18):
         return _table(rows, font_size, header, gap_x, gap_y)
+
+    def grid_table(self, rows, font_size=26, header=True, h_buff=0.6, v_buff=0.28, cell=None, line_config=None):
+        return _grid_table(rows, font_size, header, h_buff, v_buff, cell, line_config)
+
+    def reveal_grid_table(self, t, pause_between=True):
+        """Show a grid_table: the grid and header row, then each row (pausing before each)."""
+        rows = t.get_rows()
+        self.play(Create(VGroup(t.get_horizontal_lines(), t.get_vertical_lines())), FadeIn(rows[0]))
+        for row in rows[1:]:
+            if pause_between:
+                self.pause()
+            self.play(FadeIn(row))
 
     def rows(self, t):
         """For page(): reveal a table placed with H(t), one row per pause."""
@@ -431,6 +495,28 @@ class SlideScene(CodeMixin, Slide):
         if max_height is not None and mob.height > max_height:
             mob.scale_to_fit_height(max_height)
         return mob
+
+    def fit_box(self, mob, left, right, top, bottom, align="center"):
+        """Scale `mob` down (never up) to fit the box, then place it there: centered
+        (default), at the top ("up"), or with its top left at the box's ("up left")."""
+        self.fit(mob, max_width=right - left, max_height=top - bottom)
+        if align == "center":
+            mob.move_to([(left + right) / 2, (top + bottom) / 2, 0])
+        elif align == "up":
+            mob.move_to([(left + right) / 2, top - mob.height / 2, 0])
+        else:  # "up left"
+            mob.move_to([left + mob.width / 2, top - mob.height / 2, 0])
+        return mob
+
+    def left_pane(self, mob, top=None, split=0.0, align="center", bottom=BOTTOM):
+        """Fit `mob` into the left of the slide, up to x=`split`: a structure next to text."""
+        top = self.content_top() if top is None else top
+        return self.fit_box(mob, -config.frame_width / 2 + self.margin, split - 0.2, top, bottom, align)
+
+    def right_pane(self, mob, top=None, split=0.0, align="up left", bottom=BOTTOM):
+        """Fit `mob` into the right of the slide, from x=`split`."""
+        top = self.content_top() if top is None else top
+        return self.fit_box(mob, split + 0.2, config.frame_width / 2 - self.margin, top, bottom, align)
 
     # ---------------------------------------------------------------- showing things
 

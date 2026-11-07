@@ -1,14 +1,14 @@
 # AGENTS.md: working on manim-lectern
 
 This file is for agents (and people) changing the library. If you're writing
-lectures *with* lectern, read `templates/course/AGENTS.md` instead. It's the file
+lectures *with* lectern, read `src/lectern/templates/course/AGENTS.md` instead. It's the file
 that goes in a course folder.
 
 ## What this is
 
 A Python library on top of [manim](https://www.manim.community/) and
 [manim-slides](https://manim-slides.eertmans.be/) for animated lecture slides. Authors
-write scripts in the markup in `conventions/SCRIPT_CONVENTIONS.md`; a person or an agent
+write scripts in the markup in `src/lectern/conventions/SCRIPT_CONVENTIONS.md`; a person or an agent
 translates each script into a `SlideScene`, using the helpers here.
 
 ## Layout
@@ -28,8 +28,9 @@ src/lectern/
   tex.py          extra LaTeX packages
   structures/     data structures (each module's docstring shows its use)
   extras/<topic>/ topic extensions: parsing, assembly/mips, memory, semantics
-conventions/      SCRIPT_CONVENTIONS.md (markup), STYLE.md (house style)
-templates/course/ files `lectern init` would copy into a new course folder
+  cli.py          the `lectern` command (init, where)
+  conventions/    SCRIPT_CONVENTIONS.md (markup), STYLE.md (house style)
+  templates/course/ the files `lectern init` copies into a course folder
 examples/         scripts next to the lectures made from them
 tools/            themeify.py: convert manim color names to theme roles
 ```

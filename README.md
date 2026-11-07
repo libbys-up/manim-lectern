@@ -31,9 +31,9 @@ structures, algorithms, and compilers).
 |---|---|
 | `src/lectern/` | the library: `SlideScene`, text, code, tables, themes, data structures |
 | `src/lectern/extras/` | topic extensions: `parsing`, `assembly/mips`, `memory`, `semantics` |
-| `conventions/SCRIPT_CONVENTIONS.md` | the script markup |
-| `conventions/STYLE.md` | how slides should look and move (taste, not syntax) |
-| `templates/course/` | starting files for a course folder, including `AGENTS.md` for agents |
+| `src/lectern/conventions/SCRIPT_CONVENTIONS.md` | the script markup |
+| `src/lectern/conventions/STYLE.md` | how slides should look and move (taste, not syntax) |
+| `src/lectern/templates/course/` | starting files for a course folder (`lectern init` copies them) |
 | `examples/` | scripts next to the lectures translated from them |
 | `tools/themeify.py` | converts manim color names in existing code to theme roles |
 | `tools/compare_slides.py` | compares two renders slide by slide, to check a change |
@@ -87,7 +87,13 @@ manim-slides render -ql lectures/linear_search.py LinearSearch
 
 ## Using an AI agent
 
-Copy `templates/course/` into your course folder. Its `AGENTS.md` (and `CLAUDE.md`,
+In your course folder, run
+
+```
+lectern init
+```
+
+It creates `scripts/` and `lectures/`, and copies in an `AGENTS.md` (and a `CLAUDE.md`,
 which points to it) tells an agent how to translate scripts, which conventions to
 read, and how to check its work. Put your course's own rules in
 `COURSE_CONVENTIONS.md`.
@@ -138,6 +144,7 @@ Every workaround for a manim or manim-slides problem is marked in the code with
 | `SlideScene.next_slide` | two slide breaks with nothing between them make an empty slide manim-slides can't join |
 | `SlideScene.play` | an animation shorter than a frame fails at low quality; every animation lasts at least 0.2 s |
 | `SlideScene.new_slide` | manim re-adds foreground mobjects, so they would survive a slide's fade-out |
+| `SlideScene.add_mobjects_from_animations` | animating a group of parts of something on screen made manim pull that thing apart |
 | `CodeHighlighter.set_lines` | manim counts an empty line as the point (0, 0) when sizing a group |
 
 lectern also requires manim older than 0.21: manim 0.22 removed the `write_to_movie`

@@ -3,6 +3,7 @@
     **bold**      bold
     *emphasis*    italic, in the theme's focus color
     `code`        monospace; nothing inside it is markup
+    x_{1}, 2^{n}  a subscript or superscript in prose (for real math, use $...$)
     ``a`b``       code that contains a backtick
     $x^2$         LaTeX math, on the same baseline as the prose around it
     \\*           a literal asterisk
@@ -74,6 +75,10 @@ def markup(text):
     s = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s)
     s = re.sub(r"(?<!\\)\*(.+?)(?<!\\)\*", rf'<span foreground="{T.focus}"><i>\1</i></span>', s)
     s = s.replace("\\*", "*")
+    # _{sub} and ^{sup} outside of code and math. Pango's own <sub> and <sup> come
+    # out unreadably small, so these set the size and baseline offset directly.
+    s = re.sub(r"_\{(.+?)\}", r'<span size="70%" rise="-4000">\1</span>', s)
+    s = re.sub(r"\^\{(.+?)\}", r'<span size="70%" rise="8000">\1</span>', s)
     return re.sub(r"\x00(\d+)\x00", lambda m: codes[int(m.group(1))], s)
 
 

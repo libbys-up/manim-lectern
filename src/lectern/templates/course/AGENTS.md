@@ -21,8 +21,9 @@ Instructions for agents (and people) making lecture videos in this folder with
   against it before calling it done.
 - `COURSE_CONVENTIONS.md` here. Where it disagrees with lectern's files, it wins.
 - The docstrings of what you use: `lectern/slide.py` for `SlideScene`, the module of
-  each structure, and the `CONVENTIONS.md` of each extra. Find what you need with
-  `python -c "import lectern, os; print(os.path.dirname(lectern.__file__))"`.
+  each structure, and the `CONVENTIONS.md` of each extra.
+
+`lectern where` prints where all of these files are.
 
 Use what lectern provides before writing your own. If you find yourself drawing a
 structure by hand that lectern almost has, say so: it may belong in the library.

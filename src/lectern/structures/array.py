@@ -1,3 +1,21 @@
+"""`Array`: a row of cells, with optional index labels underneath.
+
+    a = Array([3, 7, 2, 9, 4], show_indices=True)
+    self.play(a.set_background_cell(2, T.focus))   # STYLE.md: highlight = background
+    self.play(*a.swap(1, 3))
+
+Arrays with empty slots (hash tables with open addressing, say):
+
+    t = Array.with_slots([None, 14, None, None, 3])
+    v = Text("21").next_to(t, UP)
+    self.play(t.drop_into(2, v))                    # a free value moves into slot 2
+    probe = t.pointer_above(2)                      # an arrow pointing down at a slot
+    self.play(Create(probe)); self.play(t.move_pointer(probe, 3))
+    self.play(Create(t.cross(4)))                   # an X over a slot
+
+Methods that change the array return animations (or lists of them).
+"""
+
 from typing import List
 
 from manim import *
@@ -274,6 +292,84 @@ class Array(VGroup):
 
         self.add(arrow)
         return rep, Create(arrow)
+
+    # ---------- empty slots and values that move between cells ----------
+
+    @classmethod
+    def with_slots(cls, values, cell_width=0.9, cell_height=0.75, font_size=26, show_indices=True, **kwargs):
+        """An array whose `None` entries are empty slots, with indices underneath.
+        Values are kept as strings, so they compare equal to the text of values
+        dropped in later."""
+        vals = ["" if v is None else str(v) for v in values]
+        return cls(vals, cell_width=cell_width, cell_height=cell_height, font_size=font_size,
+                   show_indices=show_indices, **kwargs)
+
+    def _give_label(self, cell, mob, value):
+        cell.remove(cell.label)
+        cell.label = mob
+        cell.value = value
+        cell.add(mob)
+
+    def _blank(self, cell):
+        blank = Text("", font_size=self.font_size).move_to(cell.box)
+        cell.label, cell.value = blank, ""
+        cell.add(blank)
+
+    def drop_into(self, index, mob, value=None) -> Animation:
+        """Animation: `mob`, a value floating elsewhere on screen, moves into the empty
+        cell `index`, which then owns it. `value` defaults to the mob's text."""
+        cell = self.cells[index]
+        self._give_label(cell, mob, mob.text if value is None else value)
+        return mob.animate.move_to(cell.box)
+
+    def move_value(self, src, dst) -> Animation:
+        """Animation: cell `src`'s value slides into the empty cell `dst`."""
+        s, d = self.cells[src], self.cells[dst]
+        label, value = s.label, s.value
+        s.remove(label)
+        self._blank(s)
+        self._give_label(d, label, value)
+        return label.animate.move_to(d.box)
+
+    def clear_value(self, index) -> Animation:
+        """Animation: cell `index`'s value fades out, leaving the cell empty."""
+        cell = self.cells[index]
+        old = cell.label
+        cell.remove(old)
+        self._blank(cell)
+        return FadeOut(old)
+
+    def replace_value(self, index, text, color=None) -> Animation:
+        """Animation: cell `index`'s value fades out as `text` fades in. (For a value
+        that comes from somewhere on screen, move it with `drop_into` instead.)"""
+        cell = self.cells[index]
+        old = cell.label
+        new = Text(str(text), font_size=self.font_size, color=color or self.color).move_to(cell.box)
+        cell.remove(old)
+        cell.label, cell.value = new, str(text)
+        cell.add(new)
+        return AnimationGroup(FadeOut(old), FadeIn(new))
+
+    def clear_backgrounds(self, *indices) -> List[Animation]:
+        """Animations: clear the background of the given cells (all of them by default)."""
+        return [self.cells[i].box.animate.set_fill(opacity=0) for i in (indices or range(len(self.cells)))]
+
+    def cross(self, index, color=None) -> VGroup:
+        """A big X over cell `index` (not added): an empty slot that ends a search,
+        a value that's ruled out."""
+        box = self.cells[index].box
+        return VGroup(Line(box.get_corner(UL), box.get_corner(DR)),
+                      Line(box.get_corner(DL), box.get_corner(UR))).scale(0.6).set_color(color or T.bad).set_stroke(width=5)
+
+    def pointer_above(self, index, color=None) -> Arrow:
+        """An arrow above cell `index`, pointing down at it (not added): a probe, a cursor."""
+        top = self.cells[index].box.get_top()
+        return Arrow(top + UP * 0.75, top + UP * 0.05, buff=0, color=color or T.focus, stroke_width=5,
+                     max_tip_length_to_length_ratio=0.35)
+
+    def move_pointer(self, pointer, index) -> Animation:
+        """Animation: slide a pointer from `pointer_above` to cell `index`."""
+        return pointer.animate.move_to(self.pointer_above(index))
 
 
 __all__ = ["ArrayCell", "Array"]

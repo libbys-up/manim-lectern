@@ -31,14 +31,15 @@ import difflib
 import re
 import textwrap
 
-from manim import (UL, Code, Create, FadeIn, FadeOut, Rectangle, ReplacementTransform, SurroundingRectangle, Transform,
+from manim import (UL, Code, Create, Wait, FadeIn, FadeOut, Rectangle, ReplacementTransform, SurroundingRectangle, Transform,
                    VGroup, Animation, Arrow, Line, RIGHT)
 import numpy as np
 
 from lectern.settings import BOTTOM
 from lectern.theme import T
 
-__all__ = ["code", "register_painter", "glyphs", "line_of", "line", "lines", "span", "piece", "CodeMixin", "CodeHighlighter"]
+__all__ = ["code", "register_painter", "glyphs", "line_of", "line", "lines", "span", "piece", "line_boxes", "CodeMixin",
+           "CodeHighlighter"]
 
 _PAINTERS = {}
 
@@ -165,6 +166,19 @@ def highlight(c, target, color=None):
     return Transform(c.hl_box, rect)
 
 
+def line_boxes(c, spans, color=None, buff=0.06):
+    """Outlines around several separate lines of a Code mobject (any Code, including
+    one from a file). `spans` items are 1-indexed line numbers or (first, last) pairs;
+    each item gets its own outline."""
+    boxes = VGroup()
+    for item in spans:
+        a, b = item if isinstance(item, tuple) else (item, item)
+        # WORKAROUND(manim 0.20): leave out blank lines; see CodeHighlighter.set_lines.
+        picked = VGroup(*[l for l in c.code_lines[a - 1:b] if l.has_points() or l.submobjects])
+        boxes.add(SurroundingRectangle(picked, color=color or T.focus, buff=buff))
+    return boxes
+
+
 class CodeMixin:
     """The code methods of SlideScene. `c` is always a block made by `code()`."""
 
@@ -222,6 +236,19 @@ class CodeMixin:
         boxes = VGroup(*[SurroundingRectangle(span(c, t), color=color or T.focus, buff=0.04) for t in texts])
         self.play(Create(boxes), run_time=rt)
         return boxes
+
+    def mark_lines(self, c, spans, color=None):
+        """Animation: outline several separate lines at once (see `line_boxes`), replacing
+        the previous mark_lines outlines. For two places in the code that go together,
+        like a call and the function it calls."""
+        boxes = line_boxes(c, spans, color)
+        old, self._line_marks = getattr(self, "_line_marks", None), boxes
+        return Create(boxes) if old is None else ReplacementTransform(old, boxes)
+
+    def unmark_lines(self):
+        """Animation: remove the mark_lines outlines."""
+        old, self._line_marks = getattr(self, "_line_marks", None), None
+        return FadeOut(old) if old is not None else Wait(0.01)
 
     def gutter_arrow(self, c, a, b, color=None, side=RIGHT, out=0.45, occ_a=0, occ_b=0):
         """A jump from line `a` to line `b`, drawn outside of the code box so it never

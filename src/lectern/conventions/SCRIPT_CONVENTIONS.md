@@ -13,7 +13,7 @@ Two other files go with this one:
 
 - `STYLE.md`: what a good slide looks like (colors, motion, highlighting). The
   markup says *what* is on a slide; the style says *how* it should behave.
-- Your course's own conventions file, if it has one (see `templates/course/`). It can
+- Your course's own conventions file, if it has one (`lectern init` creates one: `COURSE_CONVENTIONS.md`). It can
   add directives, change these, or add style rules. Where it disagrees with this
   file, the course file wins.
 
@@ -28,7 +28,9 @@ A line of **4 or more `=`**, optionally followed by a title:
 ```
 
 Fades out everything on screen, advances, and brings in the title: large, centered,
-at the top. A bare `====` is an untitled continuation slide.
+at the top. A bare `====` is an untitled continuation slide (`self.clear_body()`). To carry a
+diagram over to the next slide, keep it while everything else fades:
+`self.continue_slide("Next title", keep=[diagram])`.
 
 In code: `self.page("Searching an Array", ...)`, or `self.new_slide("...")` for a
 slide built by hand.
@@ -100,13 +102,15 @@ tree[a [b c d] [e f g]]
 Anywhere text appears (titles, list items, table cells, boxes):
 
 ```
-**bold**, *emphasis*, `code`, $x^2$
+**bold**, *emphasis*, `code`, $x^2$, K_{5}, 2^{n}
 ```
 
 - `*emphasis*` is italic in the theme's focus color.
 - Nothing inside `` `code` `` is markup. Write ``` `` `+ `` ``` for code containing a
   backtick.
 - `$...$` is LaTeX math, set on the same baseline as the prose around it.
+- `_{...}` and `^{...}` outside math are a subscript and superscript in the prose
+  font, for names like K_{5} or v_{1} that aren't really math.
 - `\*` is a literal asterisk. A `*` mid-line never starts a bullet; only `* ` at the
   start of a line does.
 
@@ -142,6 +146,8 @@ Markdown table syntax:
 The header row is bold, with a rule under it. The whole table fades in at once unless
 a stage direction says otherwise ("reveal row by row"). In code:
 `t = self.table(rows)`; for row by row, `H(t), self.rows(t)` in a `page()` list.
+For a table with every cell boxed (a grid), use `self.grid_table(rows)` and
+`self.reveal_grid_table(t)`.
 
 ## Code blocks
 
