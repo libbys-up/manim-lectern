@@ -1,0 +1,15 @@
+# Settings for the lectures in this folder. Everything here is optional.
+
+# The theme every lecture uses unless it sets its own. Built in: "dark",
+# "light", "dark-colorblind", "light-colorblind". LECTERN_THEME overrides this
+# for one render.
+theme = "dark"
+
+# Your own themes start from a built-in one and change only what you list.
+# Roles: background, text, muted, focus, good, bad, current, label, subtle,
+# panel, palette (a list), code_style (a Pygments style), body_font, mono_font.
+#
+# [themes.mine]
+# base = "dark"
+# focus = "#FFB000"
+# body_font = "Atkinson Hyperlegible"

@@ -1,0 +1,3 @@
+# The examples use the default dark theme. Try LECTERN_THEME=light or
+# LECTERN_THEME=dark-colorblind when rendering to see them re-themed.
+theme = "dark"
