@@ -28,7 +28,7 @@ src/lectern/
   markers.py      P, N, C, H for page() lists
   tex.py          extra LaTeX packages
   structures/     data structures (each module's docstring shows its use)
-  extras/<topic>/ topic extensions: parsing, assembly/mips, memory, semantics
+  extras/<topic>/ topic extensions: parsing, assembly/mips, memory, semantics, graphs
   cli.py          the `lectern` command (init, where)
   conventions/    SCRIPT_CONVENTIONS.md (markup), STYLE.md (house style)
   templates/course/ the files `lectern init` copies into a course folder
