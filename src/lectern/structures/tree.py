@@ -22,6 +22,7 @@ from typing import List, Optional
 from manim import *
 import numpy as np
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 
 def _rect_boundary_point(center, half_width, half_height, direction):
@@ -203,7 +204,7 @@ class TreeNode(VGroup):
         return self.box.animate.set_fill(opacity=0)
 
 
-class Tree(VGroup):
+class Tree(AltText, VGroup):
     """Container for a binary tree of TreeNodes: standard layout, with
     insertion, leaf removal, pointer rewiring, and arbitrary node relocation."""
 
@@ -231,6 +232,10 @@ class Tree(VGroup):
             self.root.position = self.start_point.copy()
             self.root.shift(self.root.position - self.root.box.get_center())
             self.add(self.root)
+
+    def describe(self):
+        return "A binary tree. " + describe_tree(self.root, lambda n: (n.left_child, n.right_child),
+                                                 lambda n: n.value, sides=("left", "right"))
 
     def _all_nodes(self) -> List[TreeNode]:
         nodes = []

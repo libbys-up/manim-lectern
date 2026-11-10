@@ -16,6 +16,7 @@ from typing import List, Optional
 from manim import *
 import numpy as np
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 
 class LinkedListCell(VGroup):
@@ -156,7 +157,7 @@ class NilCell(VGroup):
         return self.box.animate.set_fill(opacity=0)
 
 
-class LinkedList(VGroup):
+class LinkedList(AltText, VGroup):
     """Container for linked list cells with insertion, deletion, and pointer rewiring."""
 
     def __init__(self, values: Optional[List] = None, cell_width=1.6, cell_height=0.9, gap=0.4,
@@ -188,6 +189,19 @@ class LinkedList(VGroup):
         for i, cell in enumerate(self.cells):
             cell.next_target = self._target_for(i)
             self._refresh_pointer(i)
+
+    def describe(self):
+        """Follows the next pointers from the first cell, so a rewired list reads in
+        its new order."""
+        if not self.cells:
+            return "An empty linked list."
+        vals, seen, node = [], set(), self.cells[0]
+        while node is not None and node is not self.nil and id(node) not in seen:
+            seen.add(id(node))
+            vals.append(str(node.value))
+            node = node.next_target
+        end = "null" if node is None or node is self.nil else f"back to {node.value}"
+        return f"A linked list: {', then '.join(vals)}, then {end}."
 
     def _slot_width(self, index):
         """Width of the box occupying `index` (a real cell, or nil past the end)."""

@@ -18,11 +18,12 @@ from manim import DOWN, Line, RoundedRectangle, Text, VGroup, ORIGIN
 from lectern.geometry import box_point
 from lectern.structures.tree_spec import parse_tree_spec
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 __all__ = ["LabelTree"]
 
 
-class LabelTree(VGroup):
+class LabelTree(AltText, VGroup):
 
     def __init__(self, spec, font_size=28, level_gap=0.95, sibling_gap=0.4, color=None):
         super().__init__()
@@ -88,6 +89,9 @@ class LabelTree(VGroup):
     def n(self, key, occ=0):
         """The node (a VGroup of its background and label)."""
         return self.nodes_[self.idx(key, occ)]
+
+    def describe(self):
+        return "A tree. " + describe_tree(0, lambda i: self.kids_[i], lambda i: self.labels_[i].replace("~", " "))
 
     def at(self, *path):
         """Index of the node reached by following child indices from the root."""

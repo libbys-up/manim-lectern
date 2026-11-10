@@ -207,6 +207,25 @@ starting from empty. Anything after that (highlighting an index, drawing a point
 swapping) is a stage direction, or a `[[ ... ]]` action in a list. Use the
 structure's own methods; don't hand-draw shapes a structure already provides.
 
+### Alt text
+
+A line starting with `alt: ` right after a structure gives its alt text: what the
+picture says to someone who can't see it, used in handouts.
+
+```
+[graph: house.gr]
+alt: The house graph: a square with a triangle on top, like a child's drawing of a house.
+```
+
+It applies from that point on, so a later `alt:` line changes it, for example after a
+search has colored the graph. In code: `.with_alt("...")` on the structure, or
+`g.alt_text = "..."` later.
+
+Without an `alt:` line, the structure describes itself by listing its contents
+("An array of 5 values: 3, 7, 2, 9, 4."). That's fine for arrays, lists, stacks, and
+rows. For graphs, larger trees, and anything whose point isn't its contents, the
+translator writes one from what the script says around it.
+
 ### Trees
 
 `tree[...]` and `binTree[...]` share one bracket syntax (LaTeX `qtree` without the

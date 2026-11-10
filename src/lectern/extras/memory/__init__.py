@@ -20,6 +20,7 @@ are drawn in the theme's muted color.
 import numpy as np
 from manim import DOWN, LEFT, RIGHT, Arrow, FadeIn, FadeOut, Line, Rectangle, Transform, VGroup
 
+from lectern.alt import AltText, words
 from lectern.anim import arrive
 from lectern.text import mono
 from lectern.theme import T
@@ -27,7 +28,7 @@ from lectern.theme import T
 __all__ = ["Mem", "Pointer", "StackView"]
 
 
-class Mem(VGroup):
+class Mem(AltText, VGroup):
     """A column of memory cells. `cells`: "value" or ("value", "label"). The label
     goes to the left of the cell."""
 
@@ -37,8 +38,11 @@ class Mem(VGroup):
         super().__init__()
         self.boxes, self.vals, self.labs = VGroup(), VGroup(), VGroup()
         self.h = height
+        self.values, self.labels = [], []  # as text, for describe()
         for i, c in enumerate(cells):
             val, lab = c if isinstance(c, tuple) else (c, None)
+            self.values.append(str(val))
+            self.labels.append(lab)
             dim = str(val) in self.dim_values
             box = Rectangle(width=width, height=height, stroke_width=2, color=T.muted if dim else T.text)
             box.move_to([0, -i * height, 0])
@@ -56,6 +60,10 @@ class Mem(VGroup):
                 lb.set_opacity(0)
             self.labs.add(lb)
         self.add(self.boxes, self.vals, self.labs)
+
+    def describe(self):
+        rows = [f"{lab}: {val}" if lab else val for val, lab in zip(self.values, self.labels)]
+        return f"Memory cells, top to bottom: {'; '.join(rows)}."
 
     def cell(self, i):
         return VGroup(self.boxes[i], self.vals[i])
@@ -75,29 +83,35 @@ class Mem(VGroup):
         if new.width > self.boxes[i].width - 0.15:
             new.scale_to_fit_width(self.boxes[i].width - 0.15)
         new.move_to(self.boxes[i])
+        self.values[i] = str(text)
         return arrive(self.vals[i], new, src)
 
     def relabel(self, i, text):
         new = mono(text, font_size=20, color=T.label).move_to(self.labs[i]).align_to(self.labs[i], RIGHT)
         new.next_to(self.boxes[i], LEFT, buff=0.15)
+        self.labels[i] = text
         return Transform(self.labs[i], new)
 
     def pointer(self, i, name="$sp", color=None, side=RIGHT):
         return Pointer(self.boxes[i], name, color, side)
 
 
-class Pointer(VGroup):
+class Pointer(AltText, VGroup):
     """A named arrow pointing at a cell from the side."""
 
     def __init__(self, target, name="$sp", color=None, side=RIGHT, length=0.7):
         super().__init__()
         color = color or T.current
         self.side = side
+        self.label_text = name
         tip = target.get_edge_center(side) + side * 0.05
         self.arrow = Arrow(tip + side * length, tip, buff=0, color=color, stroke_width=4, tip_length=0.18,
                            max_tip_length_to_length_ratio=0.4)
         self.name_ = mono(name, font_size=22, color=color).next_to(self.arrow, side, buff=0.08)
         self.add(self.arrow, self.name_)
+
+    def describe(self):
+        return f"An arrow labeled {self.label_text}."
 
     def to(self, target):
         """Animation: move the pointer to another cell."""
@@ -105,7 +119,7 @@ class Pointer(VGroup):
         return self.animate.shift(tip - self.arrow.get_end())
 
 
-class StackView:
+class StackView(AltText):
     """A run-time stack that grows down the screen from `top`, with a $sp pointer.
 
     Not a mobject: cells are created as values are pushed and removed as they're
@@ -129,6 +143,15 @@ class StackView:
         if sp:
             self.sp = Pointer(self.base, "$sp")
             self.sp.shift(self.top + RIGHT * width / 2 + RIGHT * 0.05 - self.sp.arrow.get_end())
+
+    def describe(self):
+        if not self.cells:
+            return "An empty run-time stack."
+        def say(i, c):
+            where = hex(self.start - 4 * i) if self.addrs else c["name"]
+            return f"{where}: {c['text']}" if where else c["text"]
+        rows = [say(i, c) for i, c in enumerate(self.cells)]
+        return f"The run-time stack, from the oldest value to the top: {'; '.join(rows)}."
 
     def start_mobs(self):
         """What to add before the first push: the base line and $sp."""
@@ -166,7 +189,7 @@ class StackView:
             val.scale_to_fit_width(self.w - 0.1)
         val.move_to(box)
         lab = self.label_for(i, name)
-        cell = dict(box=box, val=val, lab=lab, name=name)
+        cell = dict(box=box, val=val, lab=lab, name=name, text=str(text))
         self.cells.append(cell)
         return cell
 
@@ -204,6 +227,7 @@ class StackView:
     def set_val(self, i, text, color=None, src=None):
         """Animation: cell i's value becomes `text`, carried from `src` if given."""
         new = mono(text, font_size=self.font_size, color=color or T.text).move_to(self.cells[i]["box"])
+        self.cells[i]["text"] = str(text)
         return arrive(self.cells[i]["val"], new, src)
 
     def fill(self, i, color=None, opacity=0.4):

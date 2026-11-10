@@ -18,6 +18,7 @@ import numpy as np
 
 from lectern.structures.linked_list import NilCell
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 
 class DoublyLinkedListCell(VGroup):
@@ -125,7 +126,7 @@ class DoublyLinkedListCell(VGroup):
         return Transform(self.prev_pointer_arrow, new_arrow)
 
 
-class DoublyLinkedList(VGroup):
+class DoublyLinkedList(AltText, VGroup):
     """Static container for doubly-linked cells: builds a fully wired prev/next chain
     from a list of values, flanked by a nil sentinel on each end -- matching the script's
     own notation, `* <- 1 <-> 2 <-> ... <-> n -> *`."""
@@ -158,6 +159,11 @@ class DoublyLinkedList(VGroup):
             # matching `LinkedList.__init__`'s identical convention.
             self.set_next_pointer(i, i + 1 if i + 1 < len(self.cells) else None)
             self.set_prev_pointer(i, i - 1 if i > 0 else None)
+
+    def describe(self):
+        if not self.cells:
+            return "An empty doubly linked list."
+        return f"A doubly linked list: {', '.join(str(c.value) for c in self.cells)}."
 
     def layout(self):
         y = self.start_point[1]

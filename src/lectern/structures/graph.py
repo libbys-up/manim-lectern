@@ -144,6 +144,7 @@ from manim import (
 )
 
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 def _state_style(state):
     """(fill, fill_opacity, stroke, label color) for a vertex state.
@@ -254,7 +255,7 @@ class GraphEdge(VGroup):
         return self.tip.get_vertices()[0] if self.directed else self.line.get_end()
 
 
-class GraphView(VGroup):
+class GraphView(AltText, VGroup):
     """A drawn graph. Vertices are `GraphVertex`es keyed by name, edges are
     `GraphEdge`s keyed by (u, v) -- look them up with `vertex(v)` / `edge(u, v)`
     (undirected edges are found in either order).
@@ -307,6 +308,30 @@ class GraphView(VGroup):
         self.vertex_group = VGroup(*self.vertices.values())
         self.add(self.edge_group, self.weight_group, self.vertex_group)
         self.redraw()
+
+    def say(self, v):
+        """Vertex `v` as alt text names it: its label, or its key."""
+        return self.vertices[v].label.text or str(v)
+
+    def describe(self):
+        """Lists every vertex and edge, and the search colors if any are set. For a
+        graph of any size, a sentence about what it shows is usually better: set
+        `alt_text`."""
+        name = {v: self.say(v) for v in self.vertices}
+        kind = "A directed" if self.directed else "An undirected"
+        out = [f"{kind} graph with {count(len(name), 'vertex', 'vertices')}: {words(name.values())}."]
+        if self.edges:
+            join = "to" if self.directed else "and"
+            parts = []
+            for (u, v) in self.edges:
+                w = self.weights.get((u, v))
+                parts.append(f"{name[u]} {join} {name[v]}" + (f" (weight {_fmt(w)})" if w is not None else ""))
+            out.append(f"{count(len(parts), 'edge').capitalize()}: {'; '.join(parts)}.")
+        for state in ("white", "gray", "black"):
+            marked = [name[v] for v, s in self.state.items() if s == state]
+            if marked:
+                out.append(f"{state.capitalize()}: {words(marked)}.")
+        return " ".join(out)
 
     @classmethod
     def from_file(cls, path, directed=False, weighted=None, show_weights=None, **kwargs):

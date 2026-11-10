@@ -21,17 +21,19 @@ Mutating methods return Animations rather than playing them.
 from manim import *
 import numpy as np
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 
 UML_FONT = "Monospace"
 
 
-class UMLClass(VGroup):
+class UMLClass(AltText, VGroup):
     def __init__(self, name, attributes=(), operations=(), font_size=20, color=None,
                  pad_x=0.2, pad_y=0.12, row_gap=0.08, min_width=0.0, empty_height=0.3):
         color = T.text if color is None else color
         super().__init__()
         self.name = name
+        self.attributes, self.operations = list(attributes), list(operations)
         self.font_size = font_size
         self.color = color
         self.pad_x = pad_x
@@ -52,6 +54,14 @@ class UMLClass(VGroup):
             self._place(row, x, y)
         self.add(self.box, self.dividers, self.name_row, *self.attr_rows, *self.op_rows)
         self.center()
+
+    def describe(self):
+        out = [f"UML class {self.name}."]
+        if self.attributes:
+            out.append(f"Attributes: {'; '.join(self.attributes)}.")
+        if self.operations:
+            out.append(f"Operations: {'; '.join(self.operations)}.")
+        return " ".join(out)
 
     # ---------- construction ----------
 
@@ -193,7 +203,7 @@ class UMLClass(VGroup):
         return anims
 
 
-class UMLLink(VGroup):
+class UMLLink(AltText, VGroup):
     """A line from `owner` to `other`.
 
     kind="composition": filled diamond at the owner end.
@@ -214,6 +224,9 @@ class UMLLink(VGroup):
         super().__init__()
         self.kind = kind
         self.color = color
+        # Names, not the boxes: a reference to a box would be deep-copied by .animate.
+        self.owner_name, self.other_name = getattr(owner, "name", None), getattr(other, "name", None)
+        self.owner_mult, self.other_mult, self.role = owner_mult, other_mult, role
         owner_box = getattr(owner, "box", owner)
         other_box = getattr(other, "box", other)
 
@@ -260,6 +273,16 @@ class UMLLink(VGroup):
         self.labels = VGroup(*[m for m in (self.owner_label, self.other_label, self.role_label) if m is not None])
 
         self.add(self.line, self.head, self.labels)
+
+    def describe(self):
+        a, b = self.owner_name or "a class", self.other_name or "a class"
+        out = f"A UML {self.kind} from {a} to {b}"
+        mults = [f"{m} at {n}" for m, n in ((self.owner_mult, a), (self.other_mult, b)) if m]
+        if mults:
+            out += f", multiplicity {words(mults)}"
+        if self.role:
+            out += f", role {self.role}"
+        return out + "."
 
     @staticmethod
     def _clip_to_box(point, box, u):

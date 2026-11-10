@@ -55,6 +55,44 @@ class LinearSearch(SlideScene):
 - Lay out with `page()`/`panes()`/`more()`. They fit everything to the screen before
   anything is revealed, so nothing moves or runs off the edge.
 
+## Alt text
+
+Every structure has an `alt_text`: the words a student who can't see the slide gets
+in place of the picture (handouts use it). By default it lists what's in the
+structure. Set your own with `.with_alt("...")` when you create it, or
+`x.alt_text = "..."` later. It stays until you set it again.
+
+- If the script has an `alt:` line after the structure, use it word for word.
+- Keep the automatic text for arrays, linked lists, stacks, rows, and small trees,
+  where the contents *are* the point.
+- Otherwise, write one: for every graph and net, for trees bigger than about seven
+  nodes, and for anything the lecture uses as an example of something rather than
+  for its exact contents.
+
+Write it from the script around the structure, not from the picture:
+
+- **Say what it's for.** Use the slide title, the bullets, and the `note:` lines.
+  If the slide is "Cycles" and the notes say "notice we can get back to A", the alt
+  text is about that cycle, not a list of every edge.
+- **Include whatever the lecture points at.** If the narration says "the gray
+  vertices" or "the third cell", the alt text has to say which vertices are gray or
+  what's in the third cell, or the narration can't be followed.
+- **Use the script's names.** If the script calls it "the house graph", so does the
+  alt text.
+- **Keep it short:** one to three sentences. Don't start with "An image of" or
+  "A picture of"; screen readers already announce that it's an image.
+- **Update it when the point changes.** After an animation changes what the slide is
+  saying (a search finishes, a node is deleted), set new alt text, if the text you set
+  earlier is no longer true.
+
+```python
+g = GraphView.from_file("house.gr").with_alt(
+    "The house graph: a square A, B, C, D with a roof vertex E joined to A and B.")
+...
+self.play(*search_steps)
+g.alt_text = "The house graph after depth-first search from A: every vertex is black."
+```
+
 ## Commands
 
 Run from this folder:

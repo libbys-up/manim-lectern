@@ -14,6 +14,7 @@ Conventions: CONVENTIONS.md in this folder.
 
 from manim import DOWN, LEFT, RIGHT, UP, Line, MathTex, VGroup
 
+from lectern.alt import AltText, words
 from lectern.tex import use_packages
 from lectern.theme import T
 
@@ -22,12 +23,14 @@ __all__ = ["Rule"]
 use_packages("stmaryrd")
 
 
-class Rule(VGroup):
+class Rule(AltText, VGroup):
     """`[rule: a ;; b => c]` in a script: premises over a bar, conclusion under it,
     and an optional rule name to the right of the bar."""
 
     def __init__(self, prems, concl, font_size=36, name=None):
         super().__init__()
+        self.prem_tex = [p.concl_tex if isinstance(p, Rule) else p for p in prems]
+        self.concl_tex, self.name_tex = concl, name
         self.prem = [p if isinstance(p, Rule) else MathTex(p, font_size=font_size, color=T.text) for p in prems]
         self.con = MathTex(concl, font_size=font_size, color=T.text)
         top = VGroup(*self.prem)
@@ -42,6 +45,14 @@ class Rule(VGroup):
         if name:
             self.name_ = MathTex(name, font_size=font_size * 0.7, color=T.text).next_to(self.bar, RIGHT, buff=0.1)
             self.add(self.name_)
+
+    def describe(self):
+        """In LaTeX, as the rule is written. A premise that's a whole derivation is
+        named by its conclusion."""
+        name = f"Rule {self.name_tex}" if self.name_tex else "An inference rule"
+        if not self.prem_tex:
+            return f"{name}: {self.concl_tex}, with no premises."
+        return f"{name}: from {words(self.prem_tex)}, conclude {self.concl_tex}."
 
     def heads(self):
         """The premises' own text: a premise that is a Rule contributes its conclusion."""

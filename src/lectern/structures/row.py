@@ -13,14 +13,16 @@ from manim import DOWN, UP, Arrow, Brace, DashedVMobject, Rectangle, Surrounding
 
 from lectern.text import mono
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 __all__ = ["Row", "chars", "tokens"]
 
 
-class Row(VGroup):
+class Row(AltText, VGroup):
 
     def __init__(self, items, cell_h=0.6, font_size=26, min_w=0.55, gap=0.0):
         super().__init__()
+        self.items = [str(it) for it in items]
         self.boxes, self.vals = VGroup(), VGroup()
         x = 0.0
         for it in items:
@@ -40,6 +42,14 @@ class Row(VGroup):
             self.vals.add(t)
         self.add(self.boxes, self.vals)
         self.move_to(ORIGIN)
+
+    def describe(self):
+        def say(it):
+            kind, _, value = it.partition(":")
+            if value:
+                return f"{kind} {value}"
+            return "space" if kind == " " else kind
+        return f"A row of {count(len(self.items), 'cell')}: {', '.join(say(it) for it in self.items)}."
 
     def cell(self, i):
         return VGroup(self.boxes[i], self.vals[i])

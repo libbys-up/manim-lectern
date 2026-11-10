@@ -21,6 +21,7 @@ src/lectern/
   table.py        tables
   boxes.py        definition boxes, terminal boxes, outlines
   anim.py         Arrive / arrive(): values that move (STYLE.md "Things move")
+  alt.py          AltText: alt_text for structures, automatic until an author sets it
   theme.py        themes and the T roles; no color is named anywhere else
   bounds.py       the optional layout report (LECTERN_BOUNDS)
   settings.py     layout constants
@@ -56,12 +57,16 @@ tools/            themeify.py: convert manim color names to theme roles
    ```
 
    Add new ones to the list in README.md.
-6. **Every public function has a docstring** that says what it's for in lecture
+6. **Every structure has alt text.** Inherit from `AltText` (before `VGroup`) and
+   override `describe()` to say what the structure holds, from its stored state, so
+   it stays right after animations. Keep the bookkeeping in plain data (strings,
+   names), not references to other mobjects, which `.animate` would deep-copy.
+7. **Every public function has a docstring** that says what it's for in lecture
    terms, with a short example when the call isn't obvious. Module docstrings start
    with a usage example.
-7. **Prefer readable over clever.** Lecture authors and their agents read this code to
+8. **Prefer readable over clever.** Lecture authors and their agents read this code to
    learn what's available. Name things for what they mean on a slide.
-8. **Don't change how existing lectures render** unless that's the point of the
+9. **Don't change how existing lectures render** unless that's the point of the
    change. Check with the frame comparison below.
 
 ## Adding an extra

@@ -20,11 +20,12 @@ from manim import Arrow, Circle, CurvedArrow, DOWN, Line, RoundedRectangle, Text
 
 from lectern.geometry import box_point, circle_point
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 __all__ = ["Net"]
 
 
-class Net(VGroup):
+class Net(AltText, VGroup):
 
     def __init__(self, pos, edges=(), directed=True, boxes=False, font_size=26, radius=0.3,
                  bend=None, names=None, edge_font=22, shift_labels=None):
@@ -39,6 +40,8 @@ class Net(VGroup):
         self.node_group = VGroup()
         self.edge_group = VGroup()
         names = names or {}
+        self.names = names
+        self.edge_text = {}
         for key, xy in pos.items():
             text = names.get(key, key)
             label = VGroup(*[Text(t, font_size=font_size, color=T.text) for t in str(text).split("\n")]).arrange(DOWN, buff=0.08)
@@ -53,6 +56,17 @@ class Net(VGroup):
         for e in edges:
             self.add_edge(*e)
         self.add(self.edge_group, self.node_group)
+
+    def describe(self):
+        kind = "A directed" if self.directed else "An undirected"
+        name = {k: str(self.names.get(k, k)).replace("\n", " ") for k in self.nodes_}
+        out = [f"{kind} graph with {count(len(name), 'node')}: {words(name.values())}."]
+        if self.edges_:
+            join = "to" if self.directed else "and"
+            parts = [f"{name[a]} {join} {name[b]}" + (f", labeled {self.edge_text[(a, b)]}" if self.edge_text.get((a, b)) is not None else "")
+                     for a, b in self.edges_]
+            out.append(f"{count(len(parts), 'edge').capitalize()}: {'; '.join(parts)}.")
+        return " ".join(out)
 
     def make_edge(self, a, b, label=None):
         """A new edge mobject from a to b (not added to the graph)."""
@@ -79,6 +93,7 @@ class Net(VGroup):
     def add_edge(self, a, b, label=None):
         e = self.make_edge(a, b, label)
         self.edges_[(a, b)] = e
+        self.edge_text[(a, b)] = label
         self.edge_group.add(e)
         return e
 

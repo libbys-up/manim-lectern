@@ -4,9 +4,10 @@ from manim import *
 
 from lectern.structures.array import ArrayCell
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 
-class Stack(VGroup):
+class Stack(AltText, VGroup):
     """Visual stack: a column of ArrayCells growing downward, top to bottom."""
 
     def __init__(
@@ -33,6 +34,12 @@ class Stack(VGroup):
             self.add(cell)
 
         self.layout()
+
+    def describe(self):
+        if not self.cells:
+            return "An empty stack."
+        vals = [str(c.value) for c in reversed(self.cells)]
+        return f"A stack of {count(len(vals), 'value')}, from the top: {', '.join(vals)}."
 
     def _cell_position(self, index):
         return self.start_point + DOWN * index * (self.cell_height + self.gap)

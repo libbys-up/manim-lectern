@@ -10,6 +10,7 @@ core structures. Extras are imported on their own, e.g.
 Start with README.md and conventions/SCRIPT_CONVENTIONS.md.
 """
 
+from lectern.alt import AltText
 from lectern.anim import Arrive, arrive
 from lectern.markers import C, H, N, P
 from lectern.slide import SlideScene
@@ -23,5 +24,5 @@ __version__ = "0.1.0.dev0"
 
 __all__ = [
     "SlideScene", "P", "N", "C", "H", "T", "Theme", "current_theme", "get_theme", "register_theme", "use_theme",
-    "Arrive", "arrive", "mono", "CodeHighlighter",
+    "Arrive", "arrive", "mono", "CodeHighlighter", "AltText",
 ] + _structures

@@ -20,6 +20,7 @@ from typing import List
 
 from manim import *
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 
 class ArrayCell(VGroup):
@@ -83,7 +84,7 @@ class ArrayCell(VGroup):
         return self.box.animate.set_fill(opacity=0)
 
 
-class Array(VGroup):
+class Array(AltText, VGroup):
     """Visual array: a row of ArrayCells with optional index labels below."""
 
     def __init__(
@@ -125,6 +126,12 @@ class Array(VGroup):
             self.add(cell, index_label)
 
         self.layout()
+
+    def describe(self):
+        if not self.cells:
+            return "An empty array."
+        vals = ["empty" if c.value in ("", None) else str(c.value) for c in self.cells]
+        return f"An array of {count(len(vals), 'value')}: {', '.join(vals)}."
 
     def _cell_position(self, index):
         left_edge = self.start_point[0] - self.cell_widths[0] / 2

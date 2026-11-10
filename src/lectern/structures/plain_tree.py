@@ -26,6 +26,7 @@ import numpy as np
 from lectern.structures.tree import _rect_boundary_point
 from lectern.structures.tree_spec import parse_tree_spec
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 
 class PlainTreeNode(VGroup):
@@ -55,7 +56,7 @@ class PlainTreeNode(VGroup):
         return self.bg.height / 2
 
 
-class PlainTree(VGroup):
+class PlainTree(AltText, VGroup):
     def __init__(self, spec, font_size=30, level_gap=1.0, sibling_gap=0.5, placeholder_width=0.5,
                  color=None, edge_color=None, edge_width=2, edge_buff=0.05):
         color = T.text if color is None else color
@@ -91,6 +92,9 @@ class PlainTree(VGroup):
         # Edges first so highlight backgrounds draw over line ends.
         self.add(self.edges, *self.nodes())
         self.move_to(ORIGIN)
+
+    def describe(self):
+        return "A tree. " + describe_tree(self.root, lambda n: n.children, lambda n: n.value)
 
     # ---------- construction ----------
 

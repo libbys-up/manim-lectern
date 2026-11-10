@@ -26,6 +26,7 @@ import re
 
 from manim import DOWN, LEFT, RIGHT, MathTex, Rectangle, VGroup
 
+from lectern.alt import AltText, words
 from lectern.anim import arrive
 from lectern.code import code, glyphs, register_painter
 from lectern.text import mono
@@ -57,13 +58,14 @@ def paint_mips(c, i, text):
 register_painter("mips", paint_mips)
 
 
-class Regs(VGroup):
+class Regs(AltText, VGroup):
     """A small column of named registers, empty to start. `notes`: {name: text}
     shown to the right of a register (what it's used for)."""
 
     def __init__(self, names, width=1.5, height=0.42, font_size=20, notes=None, direction=DOWN):
         super().__init__()
         self.boxes, self.vals = {}, {}
+        self.values = {name: "" for name in names}  # as text, for describe()
         notes = notes or {}
         self.font_size = font_size
         for name in names:
@@ -77,12 +79,17 @@ class Regs(VGroup):
             self.add(row)
         self.arrange(direction, aligned_edge=RIGHT if not notes else LEFT, buff=0.1)
 
+    def describe(self):
+        rows = [f"{n}: {v.strip() or 'empty'}" for n, v in self.values.items()]
+        return f"Registers: {'; '.join(rows)}."
+
     def set(self, name, text, color=None, src=None):
         """Animation: register `name` gets `text`, carried from `src` if given."""
         new = mono(text, font_size=self.font_size, color=color or T.text)
         if new.width > self.boxes[name].width - 0.1:
             new.scale_to_fit_width(self.boxes[name].width - 0.1)
         new.move_to(self.boxes[name])
+        self.values[name] = str(text)
         return arrive(self.vals[name], new, src)
 
 

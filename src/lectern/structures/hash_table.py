@@ -28,6 +28,7 @@ from typing import List, Optional, Sequence
 
 from manim import *
 from lectern.theme import T
+from lectern.alt import AltText, count, describe_tree, words
 
 
 class ChainNode(VGroup):
@@ -91,7 +92,7 @@ class ChainNode(VGroup):
         return ReplacementTransform(old, new)
 
 
-class ChainedHashTable(VGroup):
+class ChainedHashTable(AltText, VGroup):
     """Row of `size` bucket cells, each with a vertical chain of `ChainNode`s.
 
     `field_widths` gives one width per node field (e.g. `[0.8]` for a set,
@@ -135,6 +136,18 @@ class ChainedHashTable(VGroup):
         self.chains: List[List[ChainNode]] = [[] for _ in range(size)]
         # arrows[b][k] is the arrow *into* node k of bucket b (k=0: from the bucket cell).
         self.arrows: List[List[Arrow]] = [[] for _ in range(size)]
+
+    def describe(self):
+        def say(node):
+            return node.values[0] if len(node.values) == 1 else "(" + ", ".join(node.values) + ")"
+        out = [f"A chained hash table with {count(self.size, 'bucket')}."]
+        empty = [str(b) for b in range(self.size) if not self.chains[b]]
+        for b in range(self.size):
+            if self.chains[b]:
+                out.append(f"Bucket {b}: {', then '.join(say(n) for n in self.chains[b])}.")
+        if empty:
+            out.append(f"{'Bucket' if len(empty) == 1 else 'Buckets'} {words(empty)} {'is' if len(empty) == 1 else 'are'} empty.")
+        return " ".join(out)
 
     @classmethod
     def from_lists(cls, lists, **kwargs):
