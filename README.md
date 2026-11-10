@@ -30,7 +30,7 @@ structures, algorithms, and compilers).
 | | |
 |---|---|
 | `src/lectern/` | the library: `SlideScene`, text, code, tables, themes, data structures |
-| `src/lectern/extras/` | topic extensions: `parsing`, `assembly/mips`, `memory`, `semantics` |
+| `src/lectern/extras/` | topic extensions: `parsing`, `assembly/mips`, `memory`, `semantics`, `graphs` |
 | `src/lectern/conventions/SCRIPT_CONVENTIONS.md` | the script markup |
 | `src/lectern/conventions/STYLE.md` | how slides should look and move (taste, not syntax) |
 | `src/lectern/templates/course/` | starting files for a course folder (`lectern init` copies them) |
@@ -49,6 +49,10 @@ If you installed manim-slides with pipx, put lectern in the same environment:
 ```
 pipx inject manim-slides -e path/to/manim-lectern
 ```
+
+This installs manim-slides with PySide6, the Qt binding `manim-slides present` uses.
+If you also have PyQt6 installed, manim-slides may pick it instead; set
+`QT_API=pyside6` to make it use PySide6.
 
 You also need LaTeX for math (see manim's installation guide).
 

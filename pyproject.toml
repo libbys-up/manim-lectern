@@ -14,7 +14,8 @@ authors = [{ name = "Steven Libby", email = "libbys@up.edu" }]
 dependencies = [
     # manim 0.22 removed a setting manim-slides 5.7 still uses; see "Known workarounds" in README.md.
     "manim>=0.18,<0.21",
-    "manim-slides>=5",
+    # manim-slides needs a Qt binding to present; PySide6 is the one it recommends.
+    "manim-slides[pyside6]>=5",
 ]
 
 [project.scripts]
