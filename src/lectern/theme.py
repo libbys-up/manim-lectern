@@ -117,13 +117,14 @@ _LIGHT = Theme(
     background="#FFFFFF",
     text="#000000",
     muted="#888888",
-    # Yellow disappears on white, so the light theme focuses with manim's BLUE.
-    # (This is what the algorithms lectures already did.)
-    focus="#58C4DD",
+    # Yellow disappears on white, so the light theme focuses with blue: Okabe-Ito
+    # blue, 5.2:1 on white. (manim's BLUE, #58C4DD, is only 2.0:1, too faint for text.)
+    focus=_OKABE_ITO["blue"],
     good="#3A8F3A",
     bad="#CF5044",
     current="#9A72AC",
-    label="#236B8E",
+    # Brown, not blue, so a label doesn't look like it's in focus.
+    label="#8B4513",
     subtle="#555555",
     panel="#F2F2F2",
     palette=("#E07020", "#5CA0B3", "#C59032", "#A05A8C"),
